@@ -38,9 +38,15 @@ jobs:
         with:
           name: realtime-speech-recognizer
           path: TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/
+      
+      - name: Preparing file for Release
+        shell: pwsh
+        run: |
+          mkdir GithubRelease
+          Compress-Archive -Path TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/* -DestinationPath GithubRelease/TTSSpeachSDKWSS-win64.zip -Force
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag'
         with:
-          files: TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/**/*
+          files: GithubRelease/*
