@@ -10,7 +10,7 @@ You can run the program by passing all configuration values as command line para
 - `--Speech:AuthorizationToken <token>`: Azure Speech service authorization token (optional, alternative to SubscriptionKey)
 - `--Speech:Endpoint <endpoint>`: The endpoint URL for your Azure Speech service (required)
 - `--Speech:Language <language>`: The language code for speech recognition (optional, default: `en-US`)
-- `--Proxy:Host <host>`: Proxy host (optional); use 'localost' for Fiddler
+- `--Proxy:Host <host>`: Proxy host (optional); use 'localhost' for Fiddler
 - `--Proxy:Port <port>`: Proxy port (optional); use '8888' for Fiddler
 
 ### Example
