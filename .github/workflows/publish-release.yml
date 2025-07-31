@@ -26,13 +26,12 @@ jobs:
         run: dotnet restore TTSSpeachSDKWSS/TTSSpeachSDKWSS.csproj
 
       - name: Publish using FolderProfile.pubxml
-        shell: bash
         run: |
           dotnet publish TTSSpeachSDKWSS/TTSSpeachSDKWSS.csproj /p:PublishProfile=TTSSpeachSDKWSS/Properties/PublishProfiles/FolderProfile.pubxml
           echo ${{ github.sha }} > TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/Release.txt
           echo ""
           echo "* Release.txt:"
-          cat TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/Release.txt
+          type TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/Release.txt
 
       - name: Archive published output
         uses: actions/upload-artifact@v4
