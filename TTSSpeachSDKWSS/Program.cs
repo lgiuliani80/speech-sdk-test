@@ -19,6 +19,13 @@ var ssc = authToken switch {
     _ => SpeechConfig.FromEndpoint(new Uri(endpoint))
 };
 
+if (config["Proxy:Host"] is string proxyHost && 
+    config["Proxy:Port"] is string proxyPort && 
+    int.TryParse(proxyPort, out int port))
+{
+    ssc.SetProxy(proxyHost, port);
+}
+
 ssc.SpeechRecognitionLanguage = config["Speech:Language"] ?? "en-US";
 
 if (authToken is not null)
