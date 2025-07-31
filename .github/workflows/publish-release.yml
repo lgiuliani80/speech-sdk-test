@@ -6,6 +6,9 @@ on:
     tags:
       - 'v*.*.*'
   workflow_dispatch:
+
+permissions:
+  contents: write
   
 jobs:
   publish:
@@ -23,17 +26,22 @@ jobs:
         run: dotnet restore TTSSpeachSDKWSS/TTSSpeachSDKWSS.csproj
 
       - name: Publish using FolderProfile.pubxml
-        run: dotnet publish TTSSpeachSDKWSS/TTSSpeachSDKWSS.csproj /p:PublishProfile=TTSSpeachSDKWSS/Properties/PublishProfiles/FolderProfile.pubxml
+        shell: bash
+        run: |
+          dotnet publish TTSSpeachSDKWSS/TTSSpeachSDKWSS.csproj /p:PublishProfile=TTSSpeachSDKWSS/Properties/PublishProfiles/FolderProfile.pubxml
+          echo ${{ github.sha }} > TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/Release.txt
+          echo ""
+          echo "* Release.txt:"
+          cat TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/Release.txt
 
       - name: Archive published output
         uses: actions/upload-artifact@v4
         with:
-          name: published-app
+          name: realtime-speech-recognizer
           path: TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/
 
-      #- name: Create GitHub Release
-      #  uses: softprops/action-gh-release@v2
-      #  with:
-      #    files: TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/**/*
-      #  env:
-      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/**/*
