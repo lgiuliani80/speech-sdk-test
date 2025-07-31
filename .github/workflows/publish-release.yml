@@ -1,0 +1,38 @@
+# This workflow publishes a release using the FolderProfile.pubxml
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore TTSSpeachSDKWSS/TTSSpeachSDKWSS.csproj
+
+      - name: Publish using FolderProfile.pubxml
+        run: dotnet publish TTSSpeachSDKWSS/TTSSpeachSDKWSS.csproj /p:PublishProfile=Properties/PublishProfiles/FolderProfile.pubxml
+
+      - name: Archive published output
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-app
+          path: TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: TTSSpeachSDKWSS/bin/Release/net8.0/publish/win-x64/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
