@@ -1,6 +1,13 @@
 ﻿using Microsoft.CognitiveServices.Speech;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
+using System.Runtime.InteropServices;
+
+if (!TestCRuntime.IsVC14RuntimeInstalled())
+{
+    Console.Error.WriteLine("The Visual C++ 2015-2019 Redistributable is not installed. Please install it from https://aka.ms/vs/16/release/vc_redist.x64.exe");
+    return;
+}
 
 var hb = new ConfigurationBuilder().AddJsonFile("appsettings.json")
                                    .AddUserSecrets(Assembly.GetExecutingAssembly())
@@ -72,3 +79,24 @@ Console.WriteLine("Press any key to stop...");
 Console.ReadKey();
 
 await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
+
+
+static class TestCRuntime
+{
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern IntPtr LoadLibrary(string lpFileName);
+
+    public static bool IsVC14RuntimeInstalled()
+    {
+        // This check is specific to Windows
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return true;
+        }
+
+        // Check if the Visual C++ 2015-2019 Redistributable is installed
+        IntPtr handle = LoadLibrary("MSVCP140.dll");
+        
+        return handle != IntPtr.Zero;
+    }
+}
