@@ -9,7 +9,7 @@ if (!TestCRuntime.IsVC14RuntimeInstalled())
     return;
 }
 
-var hb = new ConfigurationBuilder().AddJsonFile("appsettings.json")
+var hb = new ConfigurationBuilder().AddJsonFile("appsettings.TTS.json")
                                    .AddUserSecrets(Assembly.GetExecutingAssembly())
                                    .AddEnvironmentVariables()
                                    .AddCommandLine(args);
@@ -38,48 +38,76 @@ ssc.SpeechRecognitionLanguage = config["Speech:Language"] ?? "en-US";
 if (authToken is not null)
     ssc.AuthorizationToken = authToken;
 
-using var recognizer = new SpeechRecognizer(ssc);
-
-Console.WriteLine($"Say something in {ssc.SpeechRecognitionLanguage}...");
-
-recognizer.Recognizing += (s, e) =>
+switch (config.GetValue("Speech:Type", "sst"))
 {
-    Console.WriteLine($"Recognizing: {e.Result.Text}");
-};
+    case "stt":
+        {
+            using var recognizer = new SpeechRecognizer(ssc);
 
-recognizer.Recognized += (s, e) =>
-{
-    if (e.Result.Reason == ResultReason.RecognizedSpeech)
-    {
-        Console.WriteLine($"Recognized: {e.Result.Text}");
-    }
-    else if (e.Result.Reason == ResultReason.NoMatch)
-    {
-        Console.WriteLine("No speech could be recognized.");
-    }
-};
+            Console.WriteLine($"Say something in {ssc.SpeechRecognitionLanguage}...");
 
-recognizer.Canceled += (s, e) =>
-{
-    Console.WriteLine($"Canceled: Reason={e.Reason}");
-    if (e.Reason == CancellationReason.Error)
-    {
-        Console.WriteLine($"ErrorDetails={e.ErrorDetails}");
-    }
-};
+            recognizer.Recognizing += (s, e) =>
+            {
+                Console.WriteLine($"Recognizing: {e.Result.Text}");
+            };
 
-recognizer.SessionStopped += (s, e) =>
-{
-    Console.WriteLine("Session stopped.");
-};
+            recognizer.Recognized += (s, e) =>
+            {
+                if (e.Result.Reason == ResultReason.RecognizedSpeech)
+                {
+                    Console.WriteLine($"Recognized: {e.Result.Text}");
+                }
+                else if (e.Result.Reason == ResultReason.NoMatch)
+                {
+                    Console.WriteLine("No speech could be recognized.");
+                }
+            };
 
-await recognizer.StartContinuousRecognitionAsync().ConfigureAwait(false);
+            recognizer.Canceled += (s, e) =>
+            {
+                Console.WriteLine($"Canceled: Reason={e.Reason}");
+                if (e.Reason == CancellationReason.Error)
+                {
+                    Console.WriteLine($"ErrorDetails={e.ErrorDetails}");
+                }
+            };
 
-Console.WriteLine("Press any key to stop...");
-Console.ReadKey();
+            recognizer.SessionStopped += (s, e) =>
+            {
+                Console.WriteLine("Session stopped.");
+            };
 
-await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
+            await recognizer.StartContinuousRecognitionAsync().ConfigureAwait(false);
 
+            Console.WriteLine("Press any key to stop...");
+            Console.ReadKey();
+
+            await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
+        }
+        break;
+
+    case "tts":
+        {
+            using var synthesizer = new SpeechSynthesizer(ssc);
+            Console.WriteLine("Enter text to synthesize (or type 'exit' to quit):");
+            string? input;
+            while ((input = Console.ReadLine()) != null && input.ToLower() != "exit")
+            {
+                using var result = await synthesizer.SpeakTextAsync(input).ConfigureAwait(false);
+                if (result.Reason == ResultReason.SynthesizingAudioCompleted)
+                {
+                    Console.WriteLine("Speech synthesized successfully.");
+                }
+                else if (result.Reason == ResultReason.Canceled)
+                {
+                    Console.WriteLine($"Cancelled");
+                }
+
+                Console.WriteLine("Enter text to synthesize (or type 'exit' to quit):");
+            }
+        }
+        break;
+}
 
 static class TestCRuntime
 {
