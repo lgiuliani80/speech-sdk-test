@@ -9,7 +9,7 @@ if (!TestCRuntime.IsVC14RuntimeInstalled())
     return;
 }
 
-var hb = new ConfigurationBuilder().AddJsonFile("appsettings.TTS.json")
+var hb = new ConfigurationBuilder().AddJsonFile("appsettings.json")
                                    .AddUserSecrets(Assembly.GetExecutingAssembly())
                                    .AddEnvironmentVariables()
                                    .AddCommandLine(args);
